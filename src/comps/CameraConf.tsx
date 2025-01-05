@@ -48,34 +48,44 @@ export function Camera({
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900">
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Capture & Solve Your Problem</h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300">
+          Use your camera to capture problems, and let our AI solve them instantly!
+        </p>
+      </div>
+
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900 shadow-lg">
         <Webcam
           ref={webcamRef}
           screenshotFormat="image/jpeg"
           className="w-full h-full object-contain"
           videoConstraints={WEBCAM_CONFIG}
         />
+      </div>
+
+      <div className="flex justify-center">
         <button
           onClick={capture}
           disabled={isAnalyzing}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-full shadow-lg transform transition-transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAnalyzing ? (
-            <>
+            <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
               Analyzing...
-            </>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <CameraIcon className="w-5 h-5" />
               Capture & Solve
-            </>
+            </div>
           )}
         </button>
       </div>
 
       {error && (
-        <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4 shadow-md">
           <p className="text-red-600">{error}</p>
         </div>
       )}
@@ -88,5 +98,6 @@ export function Camera({
         />
       )}
     </div>
+
   );
 }

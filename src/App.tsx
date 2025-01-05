@@ -3,6 +3,7 @@ import { Camera } from './comps/CameraConf';
 import { SpeechInput } from './comps/SpeechConf';
 import { ThemeToggle } from './comps/ThemeTog';
 import { setTheme, getInitialTheme } from './utils/theme';
+import Typewriter from 'react-typewriter-effect';
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<string>('image');
@@ -33,11 +34,27 @@ export default function App() {
         <ThemeToggle theme={theme} onThemeChange={setThemeState} />
       </div>
 
-      <div className="flex flex-col items-center justify-center flex-1">
+      {/* Main content with typewriter effect */}
+      <div className="flex flex-col items-center justify-center flex-1 space-y-6">
+        {/* Typewriter Effect for Description */}
+        <div className="text-2xl text-center font-mono">
+          <Typewriter
+            text="<<Welcome to Learning Assistant!!>>"
+            cursorColor={theme === 'dark' ? 'white' : 'black'}
+            typeSpeed={100}
+            deleteSpeed={50}
+            delaySpeed={2000}
+            onTypingEnd={() => {}}
+            textStyle={{
+              color: theme === 'dark' ? '#ffffff' : '#000000',  // Make sure the text is visible
+            }}
+          />
+        </div>
+
+        {/* Main Content */}
         <Camera activeMode={activeMode} setActiveMode={setActiveMode} />
         <SpeechInput activeMode={activeMode} setActiveMode={setActiveMode} />
       </div>
     </div>
   );
 }
-

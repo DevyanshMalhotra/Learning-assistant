@@ -16,6 +16,7 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-typewriter-effect": "^1.1.0",
     "react-webcam": "^7.2.0",
     "web-speech-cognitive-services": "^8.0.0"
   },
