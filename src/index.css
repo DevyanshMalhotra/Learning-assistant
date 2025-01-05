@@ -1,3 +1,55 @@
+/* index.css or global.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global styles for both light and dark modes */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .bg-gray-200 {
+    background-color: #f3f4f6; /* Light mode background */
+  }
+  
+  .bg-gray-800 {
+    background-color: #1f2937; /* Dark mode background */
+  }
+  
+  .text-gray-600 {
+    color: #4b5563; /* Light mode text color */
+  }
+  
+  .text-gray-300 {
+    color: #d1d5db; /* Dark mode text color */
+  }
+  
+  .text-white {
+    color: white;
+  }
+  
+  .bg-blue-600 {
+    background-color: #3b82f6;
+  }
+  
+  .bg-blue-700 {
+    background-color: #2563eb;
+  }
+  
+  /* Use custom class to ensure smooth transition between themes */
+  .dark .bg-gray-800 {
+    background-color: #111827;
+  }
+  
+  .dark .text-gray-200 {
+    color: #e5e7eb;
+  }
+  
+  .dark .bg-blue-600 {
+    background-color: #3b82f6;
+  }
+  
+  .dark .bg-blue-700 {
+    background-color: #2563eb;
+  }
+  
