@@ -27,6 +27,7 @@ export function Camera({
   const capture = useCallback(async () => {
     setError("");
     const imageSrc = webcamRef.current?.getScreenshot();
+    console.log("Captured Image Source:", imageSrc); // Debugging
     if (!imageSrc) {
       setError("Failed to capture image. Please try again.");
       return;
@@ -35,10 +36,11 @@ export function Camera({
     setIsAnalyzing(true);
     try {
       const result = await analyzeImage(imageSrc);
+      console.log("Analysis Result:", result); // Debugging
       setSolution(result);
     } catch (err) {
       setError("Failed to analyze image. Please try again.");
-      console.error(err);
+      console.error("Error in analyzeImage:", err); // Debugging
     } finally {
       setIsAnalyzing(false);
     }
@@ -48,28 +50,23 @@ export function Camera({
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
-      {/* Header Section */}
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Capture & Solve Your Problem
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Capture & Solve Your Problem</h2>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Use your camera to capture problems, and let our AI solve them
-          instantly!
+          Use your camera to capture problems, and let our AI solve them instantly!
         </p>
       </div>
 
-      {/* Webcam Section */}
       <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900 shadow-lg">
         <Webcam
           ref={webcamRef}
           screenshotFormat="image/jpeg"
           className="absolute top-0 left-0 w-full h-full object-cover"
           videoConstraints={WEBCAM_CONFIG}
+          onUserMediaError={() => setError("Unable to access the camera. Check permissions.")}
         />
       </div>
 
-      {/* Capture Button */}
       <div className="flex justify-center">
         <button
           onClick={capture}
@@ -90,14 +87,12 @@ export function Camera({
         </button>
       </div>
 
-      {/* Error Display */}
       {error && (
         <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4 shadow-md">
           <p className="text-red-600">{error}</p>
         </div>
       )}
 
-      {/* Solution Display */}
       {solution && !error && (
         <Solution
           solution={solution}
