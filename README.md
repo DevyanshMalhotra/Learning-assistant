@@ -81,6 +81,18 @@ The app includes a theme toggle feature, allowing users to switch between light 
 ### 4. **Solution Display**
 Once a solution is generated, it is displayed in a user-friendly format. For each solution, the user can choose to have the solution read aloud using the text-to-speech functionality. This makes the solution more interactive and accessible.
 
+## Test Images
+
+Here are some test images used in this project:
+
+![Test Image 1](testImg/img1.png)
+
+![Test Image 2](testImg/img2.png)
+
+![Test Image 2](testImg/img3.png)
+
+![Test Image 2](testImg/img4.png)
+
 ## Known Issues
 - **Speech Recognition Accuracy**: The accuracy of speech recognition may vary depending on the quality of the microphone and ambient noise.
 - **API Limitations**: The solution quality depends on the data returned by Gemini AI. Sometimes, it may not be able to solve the problem accurately.
