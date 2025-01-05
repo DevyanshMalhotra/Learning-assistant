@@ -2,6 +2,11 @@
 
 **Learning Assistant** is an interactive tool designed to help students and learners solve academic problems using advanced AI. It supports both image-based and speech-based input, utilizing the power of Google Gemini AI to analyze and solve various types of academic problems. The app provides real-time solutions and explanations, making learning more accessible and engaging.
 
+## Live Demo
+You can view the live version of the app by clicking the link below:
+
+[**Live Demo - Learning Assistant**](https://learning-assistant-coi7nmwv0-devyansh-malhotras-projects.vercel.app/)
+
 ## Features
 - **Image Mode**: Capture an image of a problem (e.g., math or science questions) using your device's camera and get a detailed solution.
 - **Speech Mode**: Speak your academic query, and the AI will process it to provide a solution in real-time.
