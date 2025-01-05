@@ -55,16 +55,16 @@ export function Camera({
         </p>
       </div>
 
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900 shadow-lg">
+      <div className="relative w-full h-screen max-h-[500px] overflow-hidden bg-gray-900 shadow-lg rounded-lg">
         <Webcam
           ref={webcamRef}
           screenshotFormat="image/jpeg"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
           videoConstraints={WEBCAM_CONFIG}
         />
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-4">
         <button
           onClick={capture}
           disabled={isAnalyzing}
@@ -98,6 +98,5 @@ export function Camera({
         />
       )}
     </div>
-
   );
 }
