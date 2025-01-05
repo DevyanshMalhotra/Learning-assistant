@@ -48,23 +48,28 @@ export function Camera({
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
+      {/* Header Section */}
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Capture & Solve Your Problem</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Capture & Solve Your Problem
+        </h2>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Use your camera to capture problems, and let our AI solve them instantly!
+          Use your camera to capture problems, and let our AI solve them
+          instantly!
         </p>
       </div>
 
+      {/* Webcam Section */}
       <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900 shadow-lg">
-      <Webcam
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        className="w-full h-full object-cover"
-        videoConstraints={WEBCAM_CONFIG}
-      />
-
+        <Webcam
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          className="absolute top-0 left-0 w-full h-full object-cover"
+          videoConstraints={WEBCAM_CONFIG}
+        />
       </div>
 
+      {/* Capture Button */}
       <div className="flex justify-center">
         <button
           onClick={capture}
@@ -85,12 +90,14 @@ export function Camera({
         </button>
       </div>
 
+      {/* Error Display */}
       {error && (
         <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4 shadow-md">
           <p className="text-red-600">{error}</p>
         </div>
       )}
 
+      {/* Solution Display */}
       {solution && !error && (
         <Solution
           solution={solution}
@@ -99,6 +106,5 @@ export function Camera({
         />
       )}
     </div>
-
   );
 }
