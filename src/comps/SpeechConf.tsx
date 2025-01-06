@@ -102,6 +102,7 @@ export function SpeechInput({
           onChange={(e) => setLanguage(e.target.value)}
           className="p-2 rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
+          <option value="en-US">English</option>
           <option value="hi-IN">Hindi</option>
           <option value="bn-IN">Bengali</option>
           <option value="te-IN">Telugu</option>
