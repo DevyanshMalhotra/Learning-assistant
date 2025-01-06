@@ -17,7 +17,7 @@ export function SpeechInput({
   setHistory: (history: any[]) => void;
 }) {
   const [solution, setSolution] = useState<string>("");
-  const [language, setLanguage] = useState<string>("en-US"); // Default language
+  const [language, setLanguage] = useState<string>("hi-IN"); // Default language (Hindi)
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string>("");
   const [isListening, setIsListening] = useState(false);
@@ -27,7 +27,7 @@ export function SpeechInput({
       const instance = new SpeechRecognition();
       instance.continuous = false;
       instance.interimResults = false;
-      instance.lang = language;
+      instance.lang = language; // Dynamically set language based on user selection
       return instance;
     }
     return null;
@@ -52,8 +52,9 @@ export function SpeechInput({
       try {
         const result = await analyzeText(speechResult);
         setSolution(result);
-         // Save to history
-         const newHistory = [
+        
+        // Save to history
+        const newHistory = [
           ...history,
           { type: "speech", question: speechResult, solution: result },
         ];
@@ -83,7 +84,7 @@ export function SpeechInput({
 
   useEffect(() => {
     return () => {
-      stopListening(); 
+      stopListening();
     };
   }, [recognition]);
 
@@ -101,10 +102,16 @@ export function SpeechInput({
           onChange={(e) => setLanguage(e.target.value)}
           className="p-2 rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
-          <option value="en-US">English</option>
           <option value="hi-IN">Hindi</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="te-IN">Telugu</option>
           <option value="ta-IN">Tamil</option>
-          {/* Add more languages as needed */}
+          <option value="mr-IN">Marathi</option>
+          <option value="ur-IN">Urdu</option>
+          <option value="gu-IN">Gujarati</option>
+          <option value="pa-IN">Punjabi</option>
+          <option value="ml-IN">Malayalam</option>
+          <option value="kn-IN">Kannada</option>
         </select>
       </div>
 
