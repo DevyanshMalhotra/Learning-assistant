@@ -39,13 +39,13 @@ export function Camera({
 
     setIsAnalyzing(true);
     try {
-      const result = await analyzeImage(imageSrc);
-      console.log("Analysis Result:", result); // Debugging
-      setSolution(result);
+      const { title, solution } = await analyzeImage(imageSrc);
+      console.log("Analysis Result:", solution); // Debugging
+      setSolution(solution);
       // Save to history
       const newHistory = [
         ...history,
-        { type: "image", question: "Image Question", solution: result },
+        { type: "image", question: title, solution: solution },
       ];
       setHistory(newHistory);
     } catch (err) {
@@ -54,7 +54,7 @@ export function Camera({
     } finally {
       setIsAnalyzing(false);
     }
-  }, [webcamRef, history]);
+  }, [webcamRef,history,setHistory]);
 
   if (activeMode !== "image") return null;
 
