@@ -8,9 +8,13 @@ const SpeechRecognition =
 export function SpeechInput({
   activeMode,
   setActiveMode,
+  history,
+  setHistory,  
 }: {
   activeMode: string;
   setActiveMode: (mode: string) => void;
+  history: any[];
+  setHistory: (history: any[]) => void;
 }) {
   const [solution, setSolution] = useState<string>("");
   const [language, setLanguage] = useState<string>("en-US"); // Default language
@@ -48,6 +52,12 @@ export function SpeechInput({
       try {
         const result = await analyzeText(speechResult);
         setSolution(result);
+         // Save to history
+         const newHistory = [
+          ...history,
+          { type: "speech", question: speechResult, solution: result },
+        ];
+        setHistory(newHistory);
       } catch (err) {
         setError("Failed to process speech input. Please try again.");
         console.error(err);

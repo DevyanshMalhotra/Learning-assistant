@@ -14,9 +14,13 @@ const WEBCAM_CONFIG = {
 export function Camera({
   activeMode,
   setActiveMode,
+  history=[],
+  setHistory,
 }: {
   activeMode: string;
   setActiveMode: (mode: string) => void;
+  history: any[];
+  setHistory: (history: any[]) => void;
 }) {
   const webcamRef = useRef<Webcam>(null);
   const [solution, setSolution] = useState<string>("");
@@ -38,13 +42,19 @@ export function Camera({
       const result = await analyzeImage(imageSrc);
       console.log("Analysis Result:", result); // Debugging
       setSolution(result);
+      // Save to history
+      const newHistory = [
+        ...history,
+        { type: "image", question: "Image Question", solution: result },
+      ];
+      setHistory(newHistory);
     } catch (err) {
       setError("Failed to analyze image. Please try again.");
       console.error("Error in analyzeImage:", err); // Debugging
     } finally {
       setIsAnalyzing(false);
     }
-  }, [webcamRef]);
+  }, [webcamRef, history]);
 
   if (activeMode !== "image") return null;
 

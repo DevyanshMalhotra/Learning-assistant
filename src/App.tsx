@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Camera } from './comps/CameraConf';
 import { SpeechInput } from './comps/SpeechConf';
 import { ThemeToggle } from './comps/ThemeTog';
+import { HistoryView } from './comps/HistoryView';
 import { setTheme, getInitialTheme } from './utils/theme';
 import Typewriter from 'react-typewriter-effect';
 
 export default function App() {
   const [activeMode, setActiveMode] = useState<string>('image');
+  const [history, setHistory] = useState<any[]>([]);
   const [theme, setThemeState] = useState<'light' | 'dark'>(getInitialTheme());
 
   useEffect(() => {
@@ -52,8 +54,9 @@ export default function App() {
         </div>
 
         {/* Main Content */}
-        <Camera activeMode={activeMode} setActiveMode={setActiveMode} />
-        <SpeechInput activeMode={activeMode} setActiveMode={setActiveMode} />
+        <Camera activeMode={activeMode} setActiveMode={setActiveMode} history={history} setHistory={setHistory} />
+        <SpeechInput activeMode={activeMode} setActiveMode={setActiveMode} history={history} setHistory={setHistory}/>
+        <HistoryView history={history} />
       </div>
     </div>
   );
