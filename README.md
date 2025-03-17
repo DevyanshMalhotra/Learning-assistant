@@ -5,7 +5,7 @@
 ## Live Demo
 You can view the live version of the app by clicking the link below:
 
-[**Live Demo - Learning Assistant**](https://learning-assistant-m3txki1t6-devyansh-malhotras-projects.vercel.app/)
+[**Live Demo - Learning Assistant**](https://learning-assistant-eta.vercel.app/)
 
 ## Features
 - **Image Mode**: Capture an image of a problem (e.g., math or science questions) using your device's camera and get a detailed solution.
