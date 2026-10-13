@@ -1,19 +1,20 @@
-import React, { useEffect } from "react";
-import { Volume2, VolumeX } from "lucide-react";
-import { speak, stopSpeaking } from "../utils/speech";
+import { useEffect } from 'react';
+import { Check, Copy, Volume2, VolumeX } from 'lucide-react';
+import { useState } from 'react';
+import { speak, stopSpeaking } from '../utils/speech';
 
-interface SolutionProps {
+interface Props {
   solution: string;
-  onToggleSpeech: (speaking: boolean) => void;
   isSpeaking: boolean;
+  onToggleSpeech: (speaking: boolean) => void;
 }
 
-export function Solution({ solution, onToggleSpeech, isSpeaking }: SolutionProps) {
-  useEffect(() => {
-    return () => stopSpeaking();
-  }, []);
+export function Solution({ solution, isSpeaking, onToggleSpeech }: Props) {
+  const [copied, setCopied] = useState(false);
 
-  const handleToggleSpeech = () => {
+  useEffect(() => () => stopSpeaking(), []);
+
+  const toggleSpeech = () => {
     if (isSpeaking) {
       stopSpeaking();
       onToggleSpeech(false);
@@ -23,34 +24,39 @@ export function Solution({ solution, onToggleSpeech, isSpeaking }: SolutionProps
     }
   };
 
-  // Convert the Markdown-style text to plain text
-  const plainTextSolution = solution
-    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold (**text**)
-    .replace(/\*(.*?)\*/g, '$1') // Remove italic (*text*)
-    .replace(/^\s*[\*\-]\s+/gm, '- ') // Replace bullet points (*) with plain dash (-)
-    .replace(/\n{2,}/g, '\n') // Remove excessive newlines
+  const copyAnswer = async () => {
+    try {
+      await navigator.clipboard.writeText(solution);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const formatted = solution
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1');
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold dark:text-white">Solution:</h2>
-        <button
-          onClick={handleToggleSpeech}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-          aria-label={isSpeaking ? "Stop speaking" : "Start speaking"}
-        >
-          {isSpeaking ? (
-            <VolumeX className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          ) : (
-            <Volume2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          )}
-        </button>
+    <section className="content-card min-w-0 overflow-hidden p-5 sm:p-7" aria-label="AI answer">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b pb-4" style={{ borderColor: 'var(--border)' }}>
+        <div>
+          <p className="section-label mb-1">Explanation</p>
+          <h2 className="text-lg font-bold sm:text-xl">Your answer</h2>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={copyAnswer} className="secondary-button" aria-label="Copy answer">
+            {copied ? <Check size={16}/> : <Copy size={16}/>}
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+          <button type="button" onClick={toggleSpeech} className="secondary-button"
+            aria-label={isSpeaking ? 'Stop reading answer' : 'Read answer aloud'}>
+            {isSpeaking ? <VolumeX size={17}/> : <Volume2 size={17}/>}
+            <span className="hidden sm:inline">{isSpeaking ? 'Stop' : 'Listen'}</span>
+          </button>
+        </div>
       </div>
-      <div className="prose dark:prose-invert max-w-none">
-        {plainTextSolution.split('\n').map((line, i) => (
-          <p key={i} className="mb-2 dark:text-gray-300">{line}</p>
-        ))}
-      </div>
-    </div>
+      <div className="answer-body text-sm sm:text-[15px]">{formatted}</div>
+    </section>
   );
 }
