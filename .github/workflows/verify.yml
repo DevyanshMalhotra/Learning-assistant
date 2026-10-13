@@ -26,3 +26,12 @@ jobs:
         run: npx tsc --project tsconfig.app.json --noEmit
       - name: Build production bundle
         run: npm run build
+      - name: Install browser test runner
+        run: npm install --no-save --ignore-scripts playwright
+      - name: Smoke test at mobile, tablet and desktop widths
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          npm run preview -- --host 127.0.0.1 &
+          sleep 5
+          node tests/smoke.cjs
