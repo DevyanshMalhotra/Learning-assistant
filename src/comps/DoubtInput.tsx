@@ -1,107 +1,80 @@
-import React, { useState, useEffect } from "react";
-import { analyzeText } from "../utils/gemini"; // Importing the function to process doubts
-import { Volume2, VolumeX } from "lucide-react"; // Icons for speech functionality
-import { speak, stopSpeaking } from "../utils/speech"; // Speech utilities
+import { useEffect, useState } from 'react';
+import type { Dispatch, FormEvent, SetStateAction } from 'react';
+import { ArrowUpRight, MessageCircleQuestion, Sparkles } from 'lucide-react';
+import { analyzeText } from '../utils/gemini';
+import { stopSpeaking } from '../utils/speech';
+import { Solution } from './SolutionGen';
+import type { HistoryEntry } from '../types';
 
-interface DoubtInputProps {
-  history: any[];
-  setHistory: React.Dispatch<React.SetStateAction<any[]>>;
-  theme: "light" | "dark"; // Added theme for dynamic styling
+interface Props {
+  setHistory: Dispatch<SetStateAction<HistoryEntry[]>>;
 }
 
-export function DoubtInput({ history, setHistory, theme }: DoubtInputProps) {
-  const [doubt, setDoubt] = useState("");
-  const [answer, setAnswer] = useState("");
+export function DoubtInput({ setHistory }: Props) {
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  useEffect(() => {
-    return () => stopSpeaking(); // Stop any speech when the component unmounts
-  }, []);
+  useEffect(() => () => stopSpeaking(), []);
 
-  const handleSubmit = async () => {
-    if (!doubt.trim()) return; // Prevent submission of empty doubts
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion || loading) return;
+
     setLoading(true);
-    setAnswer(""); // Clear previous answer while fetching new one
-
+    setAnswer('');
+    stopSpeaking();
+    setIsSpeaking(false);
     try {
-      const solution = await analyzeText(doubt); // Call Gemini API to process the doubt
-      setAnswer(solution);
-
-      // Update history with new doubt and solution
-      const newHistoryItem = { question: doubt, solution };
-      setHistory([newHistoryItem, ...history]);
-
-      setDoubt(""); // Clear input after submission
-    } catch (error) {
-      console.error("Error fetching answer:", error);
-      setAnswer("Sorry, I encountered an error. Please try again later.");
+      const result = await analyzeText(trimmedQuestion);
+      setAnswer(result);
+      setHistory(previous => [{
+        type: 'doubt', question: trimmedQuestion, solution: result,
+      }, ...previous]);
+      setQuestion('');
+    } catch {
+      setAnswer('Something went wrong. Please try submitting your question again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleSpeech = () => {
-    if (isSpeaking) {
-      stopSpeaking();
-      setIsSpeaking(false);
-    } else {
-      speak(answer, () => setIsSpeaking(false));
-      setIsSpeaking(true);
-    }
-  };
-
   return (
-    <div
-      className={`flex flex-col items-center space-y-4 p-4 rounded-lg shadow-md w-full max-w-lg ${
-        theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
-      }`}
-    >
-      <h2 className="text-2xl font-bold">Ask Your Doubts??</h2>
-      <textarea
-        className={`w-full h-24 p-4 border rounded-lg focus:outline-none ${
-          theme === "dark"
-            ? "bg-gray-900 text-white border-gray-600"
-            : "bg-white text-black border-gray-300"
-        }`}
-        placeholder="Type your doubt here..."
-        value={doubt}
-        onChange={(e) => setDoubt(e.target.value)}
-      />
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-          theme === "dark"
-            ? "bg-blue-500 text-white hover:bg-blue-400"
-            : "bg-blue-600 text-white hover:bg-blue-500"
-        } disabled:opacity-50`}
-      >
-        {loading ? "Fetching Answer..." : "Submit"}
-      </button>
-      {answer && (
-        <div
-          className={`w-full p-4 border rounded-lg flex flex-col items-start ${
-            theme === "dark" ? "bg-gray-700 text-white" : "bg-gray-100 text-black"
-          }`}
-        >
-          <div className="flex justify-between items-center w-full mb-2">
-            <h3 className="font-semibold">Answer:</h3>
-            <button
-              onClick={toggleSpeech}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
-              aria-label={isSpeaking ? "Stop speaking" : "Start speaking"}
-            >
-              {isSpeaking ? (
-                <VolumeX className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              ) : (
-                <Volume2 className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              )}
+    <div className="mx-auto w-full max-w-[980px] space-y-5 sm:space-y-6">
+      <section className="content-card p-5 sm:p-7 lg:p-8">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="soft-panel flex h-12 w-12 items-center justify-center rounded-2xl">
+            <MessageCircleQuestion size={22} className="accent-text"/>
+          </span>
+          <div>
+            <p className="section-label mb-1">Text input</p>
+            <h2 className="text-lg font-bold sm:text-xl">What would you like to understand?</h2>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="question" className="mb-2 block text-sm font-semibold">Your question</label>
+          <textarea id="question" value={question} onChange={event => setQuestion(event.target.value)}
+            placeholder="For example: Explain how binary search works, with a simple example..."
+            rows={7} maxLength={5000}
+            className="form-field min-h-[190px] resize-y text-sm leading-7"
+            aria-describedby="question-help"
+          />
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p id="question-help" className="body-muted text-xs leading-relaxed">
+              <Sparkles size={14} className="mr-1 inline"/> Specific questions often lead to clearer answers.
+            </p>
+            <button type="submit" disabled={!question.trim() || loading} className="primary-button w-full sm:w-auto">
+              {loading ? 'Thinking...' : 'Get explanation'}
+              {!loading && <ArrowUpRight size={18}/>}
             </button>
           </div>
-          <p>{answer}</p>
-        </div>
-      )}
+        </form>
+      </section>
+
+      {answer && <Solution solution={answer} isSpeaking={isSpeaking} onToggleSpeech={setIsSpeaking}/>}
     </div>
   );
 }
