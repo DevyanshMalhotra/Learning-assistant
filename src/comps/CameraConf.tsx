@@ -1,115 +1,100 @@
-import React, { useCallback, useRef, useState } from "react";
-import Webcam from "react-webcam";
-import { Camera as CameraIcon, Loader2 } from "lucide-react";
-import { analyzeImage } from "../utils/gemini";
-import { Solution } from "./SolutionGen";
+import { useCallback, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import Webcam from 'react-webcam';
+import { AlertCircle, Camera as CameraIcon, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { analyzeImage } from '../utils/gemini';
+import { Solution } from './SolutionGen';
+import type { HistoryEntry } from '../types';
 
-const WEBCAM_CONFIG = {
-  width: 1280,
-  height: 720,
-  facingMode: "environment",
-  screenshotQuality: 0.92,
-};
+interface Props {
+  setHistory: Dispatch<SetStateAction<HistoryEntry[]>>;
+}
 
-export function Camera({
-  activeMode,
-  setActiveMode,
-  history=[],
-  setHistory,
-}: {
-  activeMode: string;
-  setActiveMode: (mode: string) => void;
-  history: any[];
-  setHistory: (history: any[]) => void;
-}) {
+const videoConstraints = { facingMode: 'environment' };
+
+export function Camera({ setHistory }: Props) {
   const webcamRef = useRef<Webcam>(null);
-  const [solution, setSolution] = useState<string>("");
+  const [solution, setSolution] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const capture = useCallback(async () => {
-    setError("");
+    setError('');
     const imageSrc = webcamRef.current?.getScreenshot();
-    console.log("Captured Image Source:", imageSrc); // Debugging
     if (!imageSrc) {
-      setError("Failed to capture image. Please try again.");
+      setError('The camera is not ready. Please allow camera access and try again.');
       return;
     }
 
     setIsAnalyzing(true);
+    setSolution('');
     try {
-      const { title, solution } = await analyzeImage(imageSrc);
-      console.log("Analysis Result:", solution); // Debugging
-      setSolution(solution);
-      // Save to history
-      const newHistory = [
-        ...history,
-        { type: "image", question: title, solution: solution },
-      ];
-      setHistory(newHistory);
-    } catch (err) {
-      setError("Failed to analyze image. Please try again.");
-      console.error("Error in analyzeImage:", err); // Debugging
+      const result = await analyzeImage(imageSrc);
+      if (result.title === 'Error') {
+        setError(result.solution);
+        return;
+      }
+      setSolution(result.solution);
+      setHistory(previous => [{
+        type: 'image', question: result.title, solution: result.solution,
+      }, ...previous]);
+    } catch {
+      setError('Could not analyze the captured image. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
-  }, [webcamRef,history,setHistory]);
-
-  if (activeMode !== "image") return null;
+  }, [setHistory]);
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Capture & Solve Your Problem</h2>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
-          Use your camera to capture problems, and let our AI solve them instantly!
-        </p>
-      </div>
-
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-900 shadow-lg">
-        <Webcam
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          className="absolute top-0 left-0 w-full h-full object-cover"
-          videoConstraints={WEBCAM_CONFIG}
-          onUserMediaError={() => setError("Unable to access the camera. Check permissions.")}
-        />
-      </div>
-
-      <div className="flex justify-center">
-        <button
-          onClick={capture}
-          disabled={isAnalyzing}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-full shadow-lg transform transition-transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isAnalyzing ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Analyzing...
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <CameraIcon className="w-5 h-5" />
-              Capture & Solve
-            </div>
-          )}
-        </button>
-      </div>
-
-      {error && (
-        <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4 shadow-md">
-          <p className="text-red-600">{error}</p>
+    <div className="mx-auto w-full max-w-[980px] space-y-5 sm:space-y-6">
+      <section className="content-card overflow-hidden">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b px-5 py-5 sm:px-7" style={{ borderColor: 'var(--border)' }}>
+          <div>
+            <p className="section-label mb-2">Camera input</p>
+            <h2 className="text-lg font-bold sm:text-xl">Capture your question</h2>
+            <p className="body-muted mt-1 text-sm">Position the problem inside the frame, then capture it.</p>
+          </div>
+          <span className="soft-panel flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium">
+            <ImageIcon size={15} /> Live camera
+          </span>
         </div>
-      )}
 
-      {solution && !error && (
-        <Solution
-          solution={solution}
-          isSpeaking={isSpeaking}
-          onToggleSpeech={setIsSpeaking}
-        />
-      )}
+        <div className="p-4 sm:p-6 lg:p-7">
+          <div className="relative mx-auto aspect-[4/3] max-h-[500px] w-full overflow-hidden rounded-2xl bg-slate-900 sm:aspect-video">
+            <Webcam
+              ref={webcamRef}
+              audio={false}
+              mirrored={false}
+              screenshotFormat="image/jpeg"
+              screenshotQuality={0.9}
+              videoConstraints={videoConstraints}
+              className="absolute inset-0 h-full w-full object-cover"
+              onUserMedia={() => { setCameraReady(true); setError(''); }}
+              onUserMediaError={() => { setCameraReady(false); setError('Unable to access the camera. Check your browser permissions and device.'); }}
+            />
+            <div className="pointer-events-none absolute inset-5 rounded-lg border border-white/25" />
+            <span className="absolute bottom-4 left-4 rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
+              {cameraReady ? 'Camera connected' : 'Waiting for camera access'}
+            </span>
+          </div>
+
+          <div className="mt-5 flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <p className="body-muted max-w-md text-center text-xs leading-relaxed sm:text-left">
+              For best results, use good lighting and keep text sharp and readable.
+            </p>
+            <button type="button" onClick={capture} disabled={!cameraReady || isAnalyzing}
+              className="primary-button w-full shrink-0 sm:w-auto">
+              {isAnalyzing ? <Loader2 size={18} className="animate-spin"/> : <CameraIcon size={18}/>}
+              {isAnalyzing ? 'Analyzing image...' : 'Capture & solve'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {error && <div role="alert" className="error-panel flex items-start gap-2 text-sm"><AlertCircle size={18} className="mt-0.5 shrink-0"/>{error}</div>}
+      {solution && !error && <Solution solution={solution} isSpeaking={isSpeaking} onToggleSpeech={setIsSpeaking}/>}
     </div>
   );
 }

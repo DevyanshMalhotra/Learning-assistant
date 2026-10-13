@@ -1,145 +1,162 @@
-import React, { useState, useEffect } from "react";
-import { analyzeText } from "../utils/gemini";
-import { Solution } from "./SolutionGen";
+import { useEffect, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { Globe2, Loader2, Mic2, MicOff, Radio } from 'lucide-react';
+import { analyzeText } from '../utils/gemini';
+import { Solution } from './SolutionGen';
+import type { HistoryEntry } from '../types';
 
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+interface SpeechResult {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+interface BrowserRecognition {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechResult) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+type RecognitionWindow = Window & {
+  SpeechRecognition?: new () => BrowserRecognition;
+  webkitSpeechRecognition?: new () => BrowserRecognition;
+};
 
-export function SpeechInput({
-  activeMode,
-  setActiveMode,
-  history,
-  setHistory,  
-}: {
-  activeMode: string;
-  setActiveMode: (mode: string) => void;
-  history: any[];
-  setHistory: (history: any[]) => void;
-}) {
-  const [solution, setSolution] = useState<string>("");
-  const [language, setLanguage] = useState<string>("hi-IN"); // Default language (Hindi)
+interface Props {
+  setHistory: Dispatch<SetStateAction<HistoryEntry[]>>;
+}
+
+const languages = [
+  { code: 'en-US', label: 'English' },
+  { code: 'hi-IN', label: 'Hindi' },
+  { code: 'bn-IN', label: 'Bengali' },
+  { code: 'te-IN', label: 'Telugu' },
+  { code: 'ta-IN', label: 'Tamil' },
+  { code: 'mr-IN', label: 'Marathi' },
+  { code: 'ur-IN', label: 'Urdu' },
+  { code: 'gu-IN', label: 'Gujarati' },
+  { code: 'pa-IN', label: 'Punjabi' },
+  { code: 'ml-IN', label: 'Malayalam' },
+  { code: 'kn-IN', label: 'Kannada' },
+];
+
+export function SpeechInput({ setHistory }: Props) {
+  const recognitionRef = useRef<BrowserRecognition | null>(null);
+  const [language, setLanguage] = useState('hi-IN');
+  const [solution, setSolution] = useState('');
+  const [transcript, setTranscript] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [error, setError] = useState<string>("");
   const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
 
-  const recognition = React.useMemo(() => {
-    if (SpeechRecognition) {
-      const instance = new SpeechRecognition();
-      instance.continuous = false;
-      instance.interimResults = false;
-      instance.lang = language; // Dynamically set language based on user selection
-      return instance;
-    }
-    return null;
-  }, [language]);
+  useEffect(() => () => recognitionRef.current?.stop(), []);
 
-  const handleSpeechInput = async () => {
-    if (!recognition) {
-      setError("Speech recognition is not supported in this browser.");
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setIsListening(false);
+  };
+
+  const handleSpeechInput = () => {
+    const speechWindow = window as RecognitionWindow;
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setError('This browser does not support speech recognition. Try Chrome or use the text assistant.');
       return;
     }
 
-    setIsListening(true);
-    setError("");
-    setSolution("");
+    setError('');
+    setSolution('');
+    setTranscript('');
 
-    recognition.start();
+    const recognition = new Recognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = language;
+    recognitionRef.current = recognition;
 
-    recognition.onresult = async (event: SpeechRecognitionEvent) => {
-      const speechResult = event.results[0][0].transcript;
+    recognition.onresult = async event => {
+      const heard = event.results[0]?.[0]?.transcript?.trim();
       setIsListening(false);
+      if (!heard) {
+        setError('No speech was detected. Please try again.');
+        return;
+      }
 
+      setTranscript(heard);
+      setIsProcessing(true);
       try {
-        const result = await analyzeText(speechResult);
-        setSolution(result);
-        
-        // Save to history
-        const newHistory = [
-          ...history,
-          { type: "speech", question: speechResult, solution: result },
-        ];
-        setHistory(newHistory);
-      } catch (err) {
-        setError("Failed to process speech input. Please try again.");
-        console.error(err);
+        const answer = await analyzeText(heard);
+        setSolution(answer);
+        setHistory(previous => [{ type: 'speech', question: heard, solution: answer }, ...previous]);
+      } catch {
+        setError('Could not process the question. Please try again.');
+      } finally {
+        setIsProcessing(false);
       }
     };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = event => {
       setIsListening(false);
-      setError(`Error during speech recognition: ${event.error}`);
+      if (event.error !== 'aborted') setError(`Speech recognition error: ${event.error}`);
     };
+    recognition.onend = () => setIsListening(false);
 
-    recognition.onend = () => {
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
       setIsListening(false);
-    };
-  };
-
-  const stopListening = () => {
-    if (recognition) {
-      recognition.stop();
-      setIsListening(false);
+      setError('Could not start speech recognition. Check microphone permissions.');
     }
   };
 
-  useEffect(() => {
-    return () => {
-      stopListening();
-    };
-  }, [recognition]);
-
-  if (activeMode !== "speech") return null;
-
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
-      <div className="flex items-center gap-4">
-        <label htmlFor="language" className="text-gray-700 dark:text-gray-200">
-          Select Language:
-        </label>
-        <select
-          id="language"
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="p-2 rounded border bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-        >
-          <option value="en-US">English</option>
-          <option value="hi-IN">Hindi</option>
-          <option value="bn-IN">Bengali</option>
-          <option value="te-IN">Telugu</option>
-          <option value="ta-IN">Tamil</option>
-          <option value="mr-IN">Marathi</option>
-          <option value="ur-IN">Urdu</option>
-          <option value="gu-IN">Gujarati</option>
-          <option value="pa-IN">Punjabi</option>
-          <option value="ml-IN">Malayalam</option>
-          <option value="kn-IN">Kannada</option>
-        </select>
-      </div>
-
-      <button
-        onClick={isListening ? stopListening : handleSpeechInput}
-        className={`px-6 py-3 rounded-full text-white ${
-          isListening
-            ? "bg-red-600 hover:bg-red-700"
-            : "bg-green-600 hover:bg-green-700"
-        }`}
-      >
-        {isListening ? "Stop Listening" : "Start Speech Input"}
-      </button>
-
-      {error && (
-        <div className="w-full bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">{error}</p>
+    <div className="mx-auto w-full max-w-[980px] space-y-5 sm:space-y-6">
+      <section className="content-card p-5 sm:p-7 lg:p-8">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="section-label mb-2">Microphone input</p>
+            <h2 className="text-lg font-bold sm:text-xl">Talk through a question</h2>
+            <p className="body-muted mt-2 max-w-xl text-sm leading-6">
+              Select a language, start recording, and speak naturally.
+            </p>
+          </div>
+          <span className="soft-panel flex items-center gap-2 rounded-full px-3 py-2 text-xs">
+            <Globe2 size={15}/> Multiple languages
+          </span>
         </div>
-      )}
 
-      {solution && !error && (
-        <Solution
-          solution={solution}
-          isSpeaking={isSpeaking}
-          onToggleSpeech={setIsSpeaking}
-        />
-      )}
+        <label htmlFor="language" className="mb-2 block text-sm font-semibold">Recognition language</label>
+        <select id="language" value={language} onChange={event => setLanguage(event.target.value)}
+          disabled={isListening || isProcessing} className="form-field max-w-md text-sm">
+          {languages.map(item => <option key={item.code} value={item.code}>{item.label}</option>)}
+        </select>
+
+        <div className="soft-panel relative mt-6 flex min-h-[250px] flex-col items-center justify-center rounded-2xl px-5 py-9 text-center sm:min-h-[285px]">
+          <span className={`mb-5 flex h-[82px] w-[82px] items-center justify-center rounded-full transition-all ${isListening ? 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-300 animate-pulse' : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300'}`}>
+            {isListening ? <Radio size={35}/> : <Mic2 size={35}/>}
+          </span>
+          <h3 className="text-lg font-bold">{isListening ? 'Listening to you...' : isProcessing ? 'Working on your answer...' : 'Ready when you are'}</h3>
+          <p className="body-muted mt-2 max-w-md text-sm leading-relaxed">
+            {isListening ? 'Speak clearly into your microphone. Press Stop when finished.' : 'Your microphone is only used after you start recording.'}
+          </p>
+          <button type="button" disabled={isProcessing}
+            onClick={isListening ? stopListening : handleSpeechInput}
+            className={`mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60 ${isListening ? 'bg-rose-600' : 'bg-indigo-600'}`}>
+            {isListening ? <MicOff size={18}/> : isProcessing ? <Loader2 size={18} className="animate-spin"/> : <Mic2 size={18}/>}
+            {isListening ? 'Stop listening' : isProcessing ? 'Processing...' : 'Start speaking'}
+          </button>
+        </div>
+
+        {transcript && <div className="mt-5 rounded-xl border p-4" style={{ borderColor: 'var(--border)' }}>
+          <p className="section-label mb-2">You said</p>
+          <p className="break-words text-sm">{transcript}</p>
+        </div>}
+        {error && <div role="alert" className="error-panel mt-5 text-sm">{error}</div>}
+      </section>
+      {solution && !error && <Solution solution={solution} isSpeaking={isSpeaking} onToggleSpeech={setIsSpeaking}/>}
     </div>
   );
 }
