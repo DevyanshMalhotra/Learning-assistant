@@ -35,9 +35,7 @@ const { chromium } = require('playwright');
 
       if (width < 1024) await page.getByRole('button', { name: 'Open menu' }).click();
       await page.getByRole('button', { name: /Session history/ }).click();
-      await page.getByRole('heading', { name: 'Your learning journey starts here' }).waitFor({ state: 'visible' }).catch(async () => {
-        await page.getByText('Your learning journey starts here').waitFor();
-      });
+      await page.getByText('Your learning journey starts here').waitFor();
 
       assert.deepEqual(errors, [], `Page errors at ${width}px`);
       console.log(`PASS viewport ${width}px: layout, navigation, input, theme, history`);
