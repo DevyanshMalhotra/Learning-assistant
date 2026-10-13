@@ -41,6 +41,13 @@ export default function App() {
 
   useEffect(() => {
     if (!sidebarOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
     const onEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setSidebarOpen(false);
     };
