@@ -152,13 +152,13 @@ export default function App() {
 
           <div className="min-w-0 animate-appear">
             {activeMode === 'image' && (
-              <Camera activeMode="image" setActiveMode={() => {}} history={history} setHistory={setHistory}/>
+              <Camera setHistory={setHistory}/>
             )}
             {activeMode === 'speech' && (
-              <SpeechInput activeMode="speech" setActiveMode={() => {}} history={history} setHistory={setHistory}/>
+              <SpeechInput setHistory={setHistory}/>
             )}
             {activeMode === 'doubt' && (
-              <DoubtInput history={history} setHistory={setHistory} theme={theme}/>
+              <DoubtInput setHistory={setHistory}/>
             )}
             {activeMode === 'history' && <HistoryView history={history}/>}
           </div>
