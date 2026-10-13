@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import Webcam from 'react-webcam';
-import { AlertCircle, Camera as CameraIcon, Image as ImageIcon, LoaderCircle } from 'lucide-react';
+import { AlertCircle, Camera as CameraIcon, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { analyzeImage } from '../utils/gemini';
 import { Solution } from './SolutionGen';
 import type { HistoryEntry } from '../types';
@@ -86,7 +86,7 @@ export function Camera({ setHistory }: Props) {
             </p>
             <button type="button" onClick={capture} disabled={!cameraReady || isAnalyzing}
               className="primary-button w-full shrink-0 sm:w-auto">
-              {isAnalyzing ? <LoaderCircle size={18} className="animate-spin"/> : <CameraIcon size={18}/>}
+              {isAnalyzing ? <Loader2 size={18} className="animate-spin"/> : <CameraIcon size={18}/>}
               {isAnalyzing ? 'Analyzing image...' : 'Capture & solve'}
             </button>
           </div>
