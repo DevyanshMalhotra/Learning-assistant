@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Globe2, LoaderCircle, Mic2, MicOff, Radio } from 'lucide-react';
+import { Globe2, Loader2, Mic2, MicOff, Radio } from 'lucide-react';
 import { analyzeText } from '../utils/gemini';
 import { Solution } from './SolutionGen';
 import type { HistoryEntry } from '../types';
@@ -145,7 +145,7 @@ export function SpeechInput({ setHistory }: Props) {
           <button type="button" disabled={isProcessing}
             onClick={isListening ? stopListening : handleSpeechInput}
             className={`mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60 ${isListening ? 'bg-rose-600' : 'bg-indigo-600'}`}>
-            {isListening ? <MicOff size={18}/> : isProcessing ? <LoaderCircle size={18} className="animate-spin"/> : <Mic2 size={18}/>}
+            {isListening ? <MicOff size={18}/> : isProcessing ? <Loader2 size={18} className="animate-spin"/> : <Mic2 size={18}/>}
             {isListening ? 'Stop listening' : isProcessing ? 'Processing...' : 'Start speaking'}
           </button>
         </div>
